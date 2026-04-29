@@ -1,64 +1,34 @@
-from typing import TypedDict
-from langgraph.graph import StateGraph, END
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+import os
 
-# 🔥 Use your existing AI function
-from agents.ai_agent import extract_interaction
+def simple_tag(notes: str):
+    notes = notes.lower()
 
-
-# 🧠 State structure
-class AgentState(TypedDict):
-    input_text: str
-    extracted_data: dict
-
-
-# 🔹 Step 1: Extract data using AI
-def extract_step(state: AgentState):
-    text = state["input_text"]
-
-    ai_data = extract_interaction(text)
-
-    return {
-        "extracted_data": ai_data
-    }
-
-
-# 🔹 Step 2: Process / Improve data (optional logic)
-def process_step(state: AgentState):
-    data = state["extracted_data"]
-
-    # Example improvement
-    if data.get("sentiment") == "Positive":
-        data["priority"] = "High"
+    if "price" in notes or "cost" in notes:
+        return "💰 Pricing Discussion"
+    elif "follow" in notes:
+        return "📞 Follow-up"
+    elif "interested" in notes:
+        return "🔥 Interested"
     else:
-        data["priority"] = "Normal"
-
-    return {
-        "extracted_data": data
-    }
+        return "📝 General"
 
 
-# 🔹 Build Graph
-def build_agent():
-    graph = StateGraph(AgentState)
+def generate_tag(notes: str):
+    try:
+        api_key = os.getenv("OPENAI_API_KEY")
 
-    graph.add_node("extract", extract_step)
-    graph.add_node("process", process_step)
+        if not api_key:
+            return simple_tag(notes)
 
-    graph.set_entry_point("extract")
+        llm = ChatOpenAI(api_key=api_key)
 
-    graph.add_edge("extract", "process")
-    graph.add_edge("process", END)
+        response = llm.invoke([
+            HumanMessage(content=f"Give one short CRM tag for: {notes}")
+        ])
 
-    return graph.compile()
+        return response.content
 
-
-# 🔥 Run agent
-agent = build_agent()
-
-
-def run_agent(text: str):
-    result = agent.invoke({
-        "input_text": text
-    })
-
-    return result["extracted_data"]
+    except:
+        return simple_tag(notes)

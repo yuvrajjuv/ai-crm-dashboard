@@ -1,15 +1,12 @@
-from sqlalchemy import Column, Integer, String, Text
-from db.database import Base
-
+from sqlalchemy import Column, Integer, String, DateTime
+from datetime import datetime
+from backend.db.base import Base
 
 class Interaction(Base):
     __tablename__ = "interactions"
 
     id = Column(Integer, primary_key=True, index=True)
-    hcp_name = Column(String, nullable=False)
-    interaction_type = Column(String)
-    notes = Column(Text)
-    sentiment = Column(String)
-    outcome = Column(String)
-    follow_up = Column(String)
-    priority = Column(String)
+    doctor_name = Column(String, index=True)
+    notes = Column(String)
+    tag = Column(String)  # ✅ ADD THIS
+    created_at = Column(DateTime, default=datetime.utcnow)

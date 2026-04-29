@@ -1,22 +1,15 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from routes import interaction_routes
+from backend.routes import interaction_routes
+from backend.db.database import init_db
 
 app = FastAPI()
 
-# CORS (VERY IMPORTANT for React)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# ✅ DB auto-create on start
+init_db()
 
-# Include routes
+# ✅ routes
 app.include_router(interaction_routes.router)
 
-# Root check
 @app.get("/")
-def home():
-    return {"message": "Backend is running 🚀"}
+def root():
+    return {"message": "AI CRM Backend Running 🚀"}
